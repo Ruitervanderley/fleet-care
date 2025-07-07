@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build: ./backend
+    container_name: fleet-care-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+      - .:/workspace
+    restart: unless-stopped
+    networks:
+      - fleet-care-network
+
+  # Frontend React (Development)
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: fleet-care-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - fleet-care-network
+
+  # Banco de dados PostgreSQL (opcional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: fleet-care-db
+    environment:
+      - POSTGRES_DB=fleet_care
+      - POSTGRES_USER=fleet_user
+      - POSTGRES_PASSWORD=fleet_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - fleet-care-network
+
+  # Redis para cache (opcional)
+  redis:
+    image: redis:7-alpine
+    container_name: fleet-care-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - fleet-care-network
+
+  # Nginx como proxy reverso (opcional)
+  nginx:
+    image: nginx:alpine
+    container_name: fleet-care-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - fleet-care-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  fleet-care-network:
+    driver: bridge
