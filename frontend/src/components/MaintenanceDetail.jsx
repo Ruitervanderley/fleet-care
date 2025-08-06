@@ -17,11 +17,12 @@ import {
   DollarSign,
   User
 } from 'lucide-react'
-import { toast } from 'react-toastify'
+import { useToast } from './ToastContainer'
 
 const API_BASE = 'http://localhost:8000'
 
 const MaintenanceDetail = ({ maintenanceId, onClose }) => {
+  const { showSuccess, showError, showInfo } = useToast()
   const [maintenance, setMaintenance] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('details')
@@ -31,8 +32,23 @@ const MaintenanceDetail = ({ maintenanceId, onClose }) => {
   useEffect(() => {
     if (maintenanceId) {
       fetchMaintenanceDetail()
+      // Scroll suave para o topo quando o modal abrir
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }, [maintenanceId])
+
+  // Prevenir scroll do body quando modal estiver aberto
+  useEffect(() => {
+    if (maintenance) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [maintenance])
 
   const fetchMaintenanceDetail = async () => {
     try {
@@ -56,9 +72,9 @@ const MaintenanceDetail = ({ maintenanceId, onClose }) => {
       })
       setNewChecklistItem('')
       fetchMaintenanceDetail()
-      toast.success('Item adicionado ao checklist!')
+      showSuccess('Item adicionado ao checklist!')
     } catch (err) {
-      toast.error('Erro ao adicionar item ao checklist')
+      showError('Erro ao adicionar item ao checklist')
       console.error('Erro:', err)
     }
   }
@@ -68,9 +84,9 @@ const MaintenanceDetail = ({ maintenanceId, onClose }) => {
       await axios.put(`${API_BASE}/maintenance/checklist/${itemId}`, updates)
       setEditingItem(null)
       fetchMaintenanceDetail()
-      toast.success('Item do checklist atualizado!')
+      showSuccess('Item do checklist atualizado!')
     } catch (err) {
-      toast.error('Erro ao atualizar item do checklist')
+      showError('Erro ao atualizar item do checklist')
       console.error('Erro:', err)
     }
   }
@@ -122,13 +138,13 @@ const MaintenanceDetail = ({ maintenanceId, onClose }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content modal-fade" style={{ maxWidth: 800, width: '100%' }}>
+      <div className="modal-content maintenance-detail-modal">
         {/* Header do modal */}
         <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Wrench size={28} style={{ color: 'var(--accent-color)' }} />
-            <span className="modal-title" style={{ fontWeight: 700, fontSize: '1.5rem' }}>Manutenção</span>
-            <span className="priority-badge priority-info" style={{ marginLeft: 8 }}>{manutencao.tag}</span>
+          <div className="modal-title-wrapper">
+            <Wrench size={28} className="modal-icon" />
+            <span className="modal-title">Manutenção</span>
+            <span className="priority-badge priority-info">{manutencao.tag}</span>
           </div>
           <button
             onClick={onClose}
@@ -162,9 +178,9 @@ const MaintenanceDetail = ({ maintenanceId, onClose }) => {
           </div>
 
           {/* Content */}
-          <div style={{ marginTop: 24 }}>
+          <div className="modal-content-wrapper">
             {activeTab === 'details' && (
-              <div className="card" style={{ marginBottom: 24 }}>
+              <div className="maintenance-details-card">
                 <div className="card-header">
                   <h3 className="card-title">Informações Gerais</h3>
                 </div>
@@ -199,9 +215,9 @@ const MaintenanceDetail = ({ maintenanceId, onClose }) => {
                   </div>
                 </div>
                 {manutencao.observacoes && (
-                  <div style={{ marginTop: 16 }}>
+                  <div className="maintenance-observations">
                     <span className="maintenance-info-label">Observações:</span>
-                    <div className="maintenance-info-value" style={{ marginTop: 4 }}>{manutencao.observacoes}</div>
+                    <div className="maintenance-info-value">{manutencao.observacoes}</div>
                   </div>
                 )}
               </div>

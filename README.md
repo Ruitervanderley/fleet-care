@@ -1,281 +1,263 @@
-# 🚀 Fleet Care - Sistema de Gestão de Frotas
+# Fleet Care - Sistema de Gestão de Manutenção
 
-Sistema completo de gestão de frotas com dashboard moderno, monitoramento inteligente e gestão proativa de equipamentos.
+## 🚛 Visão Geral
 
-## ✨ Características Principais
+O **Fleet Care** é um sistema completo e moderno para gestão de manutenção de frotas, desenvolvido com tecnologias de ponta e interface premium. O sistema oferece recursos avançados de monitoramento, análise preditiva, configuração inteligente de intervalos e geração de relatórios detalhados.
 
-- **📊 Dashboard Interativo** - Visualização em tempo real do status da frota
-- **🔧 Gestão de Manutenção** - Controle de intervalos e agendamentos
-- **🚨 Alertas Inteligentes** - Notificações proativas de equipamentos críticos
-- **📈 Análises Avançadas** - Métricas e relatórios detalhados
-- **🎨 Interface Moderna** - Design responsivo e intuitivo
-- **⚙️ Personalização** - Widgets configuráveis e temas
-- **🔒 Segurança** - Autenticação e autorização robustas
+## ✨ Funcionalidades Principais
 
-## 🚀 Instalação Rápida
+### 🎯 **Dashboard Inteligente**
+- **Visão Geral da Frota** com métricas em tempo real
+- **Resumo Executivo** com KPIs principais
+- **Alertas Prioritários** com notificações inteligentes
+- **Status da Frota** com indicadores visuais
+- **Ações Rápidas** para acesso direto às funcionalidades
+- **Personalização** completa de widgets e temas
 
-### Windows
-```bash
-# Instalação automatizada
-install.bat
+### 🚗 **Gestão de Equipamentos**
+- **Cadastro Inteligente** com detecção automática de tipos
+- **Monitoramento em Tempo Real** de status e localização
+- **Histórico Detalhado** de manutenções e serviços
+- **Configuração Inteligente** de intervalos de manutenção
+- **Detecção Automática** de KM/Horas por tipo de equipamento
 
-# Ou com Docker (recomendado)
-install-docker.bat
-```
+### 🔧 **Sistema de Manutenção**
+- **Agendamento Inteligente** com sugestões automáticas
+- **Checklist Interativo** com controle de responsabilidades
+- **Registro Detalhado** de serviços realizados
+- **Controle de Custos** com orçamentos e valores reais
+- **Status em Tempo Real** com badges visuais
 
-### Linux/macOS
-```bash
-# Instalação automatizada
-chmod +x install.sh
-./install.sh
+### 📊 **Análise Preditiva**
+- **Previsão de Falhas** baseada em histórico
+- **Otimização de Custos** com recomendações
+- **Tendências de Performance** com gráficos interativos
+- **Alertas Preventivos** para manutenções necessárias
 
-# Ou com Docker
-docker-compose up --build -d
-```
+### 📋 **Relatórios Avançados**
+- **Relatórios Personalizáveis** com filtros avançados
+- **Exportação Multi-formato** (Excel, PDF, CSV)
+- **Análises Detalhadas** por período e equipamento
+- **Dashboards Executivos** com métricas de negócio
 
-## 📋 Pré-requisitos
+### ⚙️ **Configurações Inteligentes**
+- **Importação Automática** de planilhas Excel
+- **Configuração de Intervalos** com detecção inteligente
+- **Personalização de Dashboard** com drag & drop
+- **Temas Visuais** (Claro/Escuro/Automático)
 
-- **Python 3.8+** (para backend)
-- **Node.js 16+** (para frontend)
-- **Docker** (opcional, mas recomendado)
+## 🛠️ Tecnologias
 
-## 🎯 Métodos de Instalação
+### **Frontend**
+- ⚛️ **React 18** - Interface moderna e responsiva
+- ⚡ **Vite** - Build rápido e otimizado
+- 🎨 **CSS Modules** - Estilos modulares e organizados
+- 📱 **Responsive Design** - Mobile-first approach
+- 🎯 **Lucide Icons** - Ícones vetoriais modernos
+- 🌈 **Gradientes e Animações** - UI premium
 
-### 1. 🚀 Instalação Automatizada
-- **Windows:** Execute `install.bat`
-- **Linux/macOS:** Execute `./install.sh`
-- Instala automaticamente todas as dependências
-- Cria scripts de inicialização
-- Configura ambiente de desenvolvimento
+### **Backend**
+- 🐍 **Python 3.11+** - Lógica robusta e escalável
+- ⚡ **FastAPI** - API REST moderna e rápida
+- 🗄️ **SQLAlchemy** - ORM avançado
+- 📊 **Pandas** - Processamento de dados
+- 🔄 **APScheduler** - Tarefas agendadas
 
-### 2. 🐳 Instalação com Docker
-- **Windows:** Execute `install-docker.bat`
-- **Linux/macOS:** `docker-compose up --build -d`
-- Mais fácil e isolado
-- Inclui Nginx, PostgreSQL e Redis
-- Certificados SSL automáticos
-
-### 3. 🔧 Instalação Manual
-Consulte [INSTALACAO.md](INSTALACAO.md) para instruções detalhadas.
-
-## 🌐 URLs de Acesso
-
-Após a instalação:
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000
-- **Docker (HTTPS):** https://localhost
-
-## 🛠️ Scripts de Inicialização
-
-### Windows
-- `start-fleet-care.bat` - Inicia todo o sistema
-- `start-backend.bat` - Inicia apenas o backend
-- `start-frontend.bat` - Inicia apenas o frontend
-
-### Linux/macOS
-- `./start-fleet-care.sh` - Inicia todo o sistema
-- `./start-backend.sh` - Inicia apenas o backend
-- `./start-frontend.sh` - Inicia apenas o frontend
-
-## 🐳 Comandos Docker Úteis
-
-```bash
-# Ver status
-docker-compose ps
-
-# Ver logs
-docker-compose logs -f
-
-# Parar sistema
-docker-compose down
-
-# Reiniciar
-docker-compose restart
-
-# Atualizar
-docker-compose pull && docker-compose up -d
-```
-
-## 🔒 Segurança
-
-### Certificados SSL
-Para desenvolvimento local com HTTPS:
-```bash
-# Windows
-generate-ssl.bat
-
-# Linux/macOS
-chmod +x generate-ssl.sh
-./generate-ssl.sh
-```
+### **Infraestrutura**
+- 🐳 **Docker & Docker Compose** - Containerização
+- 🌐 **Nginx** - Proxy reverso e cache
+- 🗄️ **PostgreSQL** - Banco de dados robusto
+- 🔄 **Redis** - Cache e sessões
+- 📁 **SMB Protocol** - Acesso a arquivos de rede
 
 ## 📁 Estrutura do Projeto
 
 ```
 fleet-care/
-├── backend/                 # API Python/Flask
-│   ├── app.py              # Aplicação principal
-│   ├── requirements.txt    # Dependências Python
-│   └── .env               # Configurações
-├── frontend/               # Interface React
-│   ├── src/               # Código fonte
-│   ├── package.json       # Dependências Node.js
-│   └── .env              # Configurações
-├── install.bat            # Instalador Windows
-├── install.sh             # Instalador Linux/macOS
-├── install-docker.bat     # Instalador Docker Windows
-├── docker-compose.yml     # Configuração Docker
-├── nginx.conf            # Configuração Nginx
-├── generate-ssl.bat      # Gerador SSL Windows
-├── generate-ssl.sh       # Gerador SSL Linux/macOS
-├── INSTALACAO.md         # Guia completo de instalação
-└── README.md             # Este arquivo
+├── frontend/                 # Aplicação React
+│   ├── src/
+│   │   ├── assets/          # Recursos estáticos
+│   │   ├── components/      # Componentes React
+│   │   ├── config/          # Configurações
+│   │   ├── hooks/           # Hooks personalizados
+│   │   ├── pages/           # Páginas da aplicação
+│   │   ├── services/        # Serviços API
+│   │   └── styles/          # Sistema de design CSS
+│   │       ├── _variables.css    # Variáveis CSS
+│   │       ├── _base.css         # Estilos base
+│   │       ├── _components.css   # Componentes
+│   │       ├── _dashboard.css    # Dashboard
+│   │       ├── _forms.css        # Formulários
+│   │       ├── _buttons.css      # Botões
+│   │       ├── _tables.css       # Tabelas
+│   │       ├── _header.css       # Header
+│   │       └── _modern.css       # Recursos modernos
+│   └── package.json
+├── backend/                  # API FastAPI
+│   ├── app.py               # Aplicação principal
+│   ├── advanced_importer.py # Importação avançada
+│   ├── config_manager.py    # Gerenciador de configuração
+│   ├── requirements.txt     # Dependências Python
+│   └── data/               # Dados e arquivos
+├── docker-compose.yml       # Orquestração Docker
+├── nginx.conf              # Configuração Nginx
+└── README.md               # Documentação
 ```
 
-## 🔧 Configuração
+## 🚀 Instalação Rápida
 
-### Variáveis de Ambiente
-
-#### Backend (.env)
-```env
-FLASK_ENV=development
-FLASK_APP=app.py
-DATABASE_URL=sqlite:///fleet_care.db
-SECRET_KEY=sua-chave-secreta-aqui
+### **1. Pré-requisitos**
+```bash
+# Node.js 18+ e Python 3.11+
+# Docker e Docker Compose
 ```
 
-#### Frontend (.env)
-```env
+### **2. Clone e Execute**
+```bash
+git clone https://github.com/seu-usuario/fleet-care.git
+cd fleet-care
+docker-compose up -d
+```
+
+### **3. Acesse o Sistema**
+- 🌐 **Frontend**: http://localhost:3000
+- 🔧 **Backend API**: http://localhost:8000
+- 📊 **Documentação API**: http://localhost:8000/docs
+
+## ⚙️ Configuração
+
+### **Variáveis de Ambiente**
+```bash
+# Backend (.env)
+DATABASE_URL=postgresql://user:pass@localhost/fleetcare
+REDIS_URL=redis://localhost:6379
+API_KEY=your-secret-key
+
+# Frontend (.env)
 VITE_API_BASE_URL=http://localhost:8000
-VITE_APP_TITLE=Fleet Care
+VITE_APP_NAME=Fleet Care
 ```
 
-## 📊 Funcionalidades
+### **Importação de Dados**
+1. Configure o caminho da planilha em `backend/config.json`
+2. Acesse "Configurações" no sistema
+3. Clique em "Importar Planilha"
+4. O sistema detectará automaticamente os tipos de equipamentos
 
-### Dashboard Principal
-- **Resumo Executivo** - Métricas de alto nível
-- **Alertas Prioritários** - Equipamentos críticos
-- **Status da Frota** - Visão geral operacional
-- **Ações Rápidas** - Acesso rápido às funcionalidades
+## 🎨 Características de Design
 
-### Gestão de Equipamentos
-- Cadastro e edição de equipamentos
-- Configuração de intervalos de manutenção
-- Monitoramento de uso e status
-- Histórico de manutenções
+### **Interface Moderna**
+- 🎨 **Design System** completo com variáveis CSS
+- 🌈 **Gradientes Modernos** e animações suaves
+- 📱 **Responsividade Total** para todos os dispositivos
+- 🌙 **Dark/Light Theme** com transições suaves
+- ⚡ **Performance Otimizada** com lazy loading
 
-### Sistema de Alertas
-- Alertas automáticos baseados em intervalos
-- Notificações de equipamentos críticos
-- Priorização de manutenções
-- Relatórios de status
-
-### Personalização
-- Widgets configuráveis
-- Temas claro/escuro
-- Layout personalizável
-- Dashboard adaptável
+### **Experiência do Usuário**
+- 🎯 **Navegação Intuitiva** com breadcrumbs
+- 🔍 **Busca Global** em tempo real
+- 📊 **Gráficos Interativos** com hover effects
+- 🎨 **Feedback Visual** com toasts e animações
+- ⚡ **Carregamento Rápido** com skeleton screens
 
 ## 🔧 Desenvolvimento
 
-### Backend (Python/Flask)
+### **Padrões de Código**
+- **Frontend**: Componentes funcionais com hooks, CSS Modules
+- **Backend**: PEP 8, type hints, documentação automática
+- **Git**: Conventional Commits (feat, fix, docs, etc.)
+
+### **Scripts Úteis**
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
-pip install -r requirements.txt
-python app.py
+# Desenvolvimento
+npm run dev          # Frontend em modo dev
+python app.py        # Backend local
+
+# Build e Deploy
+docker-compose build # Build das imagens
+docker-compose up -d # Deploy em produção
 ```
 
-### Frontend (React/Vite)
+## 📊 Funcionalidades Avançadas
+
+### **Configuração Inteligente**
+- 🤖 **Detecção Automática** de tipos de equipamentos
+- 📊 **Sugestões Inteligentes** de intervalos
+- 🔄 **Configuração em Lote** por categoria
+- 📈 **Otimização Baseada** em histórico
+
+### **Dashboard Personalizável**
+- 🎛️ **Widgets Configuráveis** com drag & drop
+- 🎨 **Temas Personalizáveis** (Claro/Escuro/Auto)
+- 📱 **Layout Responsivo** que se adapta
+- ⚡ **Atualizações em Tempo Real**
+
+### **Sistema de Notificações**
+- 🔔 **Alertas Prioritários** com cores
+- 📧 **Notificações por Email** automáticas
+- 📱 **Push Notifications** (futuro)
+- ⏰ **Lembretes Inteligentes**
+
+## 🚀 Roadmap
+
+### **Próximas Funcionalidades**
+- [ ] 🔐 **Autenticação JWT** com roles
+- [ ] 📱 **App Mobile** para técnicos
+- [ ] 🔗 **Integração IoT** com sensores
+- [ ] 📦 **Gestão de Peças** e estoque
+- [ ] 🤝 **Integração com Fornecedores**
+- [ ] 📊 **Relatórios Avançados** com BI
+- [ ] 🗺️ **Geolocalização** em tempo real
+
+### **Melhorias Técnicas**
+- [ ] ⚡ **PWA** (Progressive Web App)
+- [ ] 🔄 **Offline Mode** com cache
+- [ ] 📈 **Analytics** e métricas de uso
+- [ ] 🔒 **Auditoria** completa de ações
+- [ ] 🌐 **Multi-idioma** (i18n)
+
+## 🤝 Contribuição
+
+1. **Fork** o projeto
+2. **Crie** uma branch (`git checkout -b feature/NovaFuncionalidade`)
+3. **Commit** suas mudanças (`git commit -m 'feat: Adiciona nova funcionalidade'`)
+4. **Push** para a branch (`git push origin feature/NovaFuncionalidade`)
+5. **Abra** um Pull Request
+
+### **Padrões de Commit**
 ```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## 📈 Monitoramento
-
-Endpoints de monitoramento disponíveis:
-- **Health Check:** http://localhost:8000/health
-- **Status API:** http://localhost:8000/status
-- **Métricas:** http://localhost:8000/metrics
-
-## 🔄 Atualizações
-
-### Instalação Manual
-```bash
-git pull origin main
-cd backend && pip install -r requirements.txt
-cd ../frontend && npm install
-```
-
-### Docker
-```bash
-docker-compose pull
-docker-compose up -d --build
-```
-
-## 🐛 Solução de Problemas
-
-### Problemas Comuns
-
-1. **"Python não encontrado"**
-   - Instale Python 3.8+ de https://www.python.org/downloads/
-   - Marque "Add Python to PATH" durante a instalação
-
-2. **"Node.js não encontrado"**
-   - Instale Node.js 16+ de https://nodejs.org/
-
-3. **"Docker não encontrado"**
-   - Instale Docker Desktop de https://www.docker.com/products/docker-desktop/
-   - Reinicie o computador após a instalação
-
-4. **"Porta já em uso"**
-   - Verifique se as portas 8000, 5173, 80, 443 estão livres
-   - Use `netstat -an | findstr :8000` (Windows) ou `lsof -i :8000` (Linux/macOS)
-
-### Logs e Debug
-```bash
-# Docker logs
-docker-compose logs -f
-
-# Backend logs
-cd backend && python app.py
-
-# Frontend logs
-cd frontend && npm run dev
+feat: Nova funcionalidade
+fix: Correção de bug
+docs: Documentação
+style: Formatação
+refactor: Refatoração
+test: Testes
+chore: Manutenção
 ```
 
 ## 📞 Suporte
 
-- **Documentação:** [INSTALACAO.md](INSTALACAO.md)
-- **Issues:** GitHub Issues
-- **Email:** suporte@fleetcare.com
+- 📧 **Email**: support@fleetcare.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/seu-usuario/fleet-care/issues)
+- 📖 **Documentação**: [Wiki do Projeto](https://github.com/seu-usuario/fleet-care/wiki)
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE.md](LICENSE.md) para detalhes.
 
-## 🤝 Contribuição
+## 👥 Autores
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+- **Desenvolvedor Principal** - [Seu Nome](https://github.com/seunome)
+- **Design System** - [Designer](https://github.com/designer)
+- **DevOps** - [DevOps Engineer](https://github.com/devops)
+
+## 🙏 Agradecimentos
+
+- 🏢 **Arruda Transporte** - Cliente e parceiro
+- 👥 **Equipe de Desenvolvimento** - Dedicação e qualidade
+- 🧪 **Beta Testers** - Feedback valioso
+- 🌟 **Comunidade Open Source** - Inspiração e ferramentas
 
 ---
 
-**🎉 Obrigado por usar o Fleet Care!**
-
-import logoArruda from './assets/logo-arruda.png';
-
-<div className="logo">
-  <img src={logoArruda} alt="Arruda" style={{ height: 40, marginRight: 12, verticalAlign: 'middle' }} />
-  Arruda Fleet Care
-</div>
-
-docker compose build frontend
-docker compose up -d
+**Fleet Care** - Transformando a gestão de frotas com tecnologia moderna e design premium! 🚛✨

@@ -1,0 +1,62 @@
+/* Variáveis CSS para temas (Design Tokens) */
+:root {
+  /* Cores base mais suaves e equilibradas */
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --secondary-color: #64748b;
+  --accent-color: #06b6d4;
+  
+  /* Cores de fundo mais suaves */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --card-bg: #ffffff;
+  --hover-bg: #f8fafc;
+  
+  /* Cores de texto mais equilibradas */
+  --text-primary: #334155;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  
+  /* Bordas mais suaves */
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  
+  /* Cores de status mais suaves */
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #3b82f6;
+  
+  /* Sombras mais suaves */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
+  /* Header background para tema claro */
+  --header-bg: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --header-text: #ffffff;
+}
+
+/* Tema Escuro */
+.theme-dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border-color: #475569;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --header-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --header-text: #ffffff;
+  --input-bg: #475569;
+  --hover-bg: #475569;
+  --secondary-bg: #334155;
+  --accent-color: #60a5fa;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --danger-color: #f87171;
+  --info-color: #22d3ee;
+}

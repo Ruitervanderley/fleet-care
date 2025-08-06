@@ -1,615 +1,610 @@
 import React, { useState, useEffect } from 'react'
-import MaintenanceDetail from './MaintenanceDetail'
-import axios from 'axios'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { 
+  Search, 
+  Filter, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
   Calendar, 
-  Wrench, 
-  CheckCircle, 
   Clock, 
-  AlertTriangle,
-  Plus,
-  Edit,
-  Eye,
-  Phone,
+  CheckCircle, 
+  AlertTriangle, 
+  X,
+  RotateCcw,
+  Wrench,
+  TrendingUp,
   DollarSign,
-  User,
-  Trash2,
-  X
+  CalendarDays,
+  BarChart3,
+  Filter as FilterIcon,
+  MoreHorizontal,
+  Download,
+  RefreshCw
 } from 'lucide-react'
-import { toast } from 'react-toastify'
+import { useToast } from './ToastContainer'
 
-const API_BASE = 'http://localhost:8000'
-
-const MaintenanceList = () => {
-  const [manutencoes, setManutencoes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [selectedMaintenance, setSelectedMaintenance] = useState(null)
-  const [fornecedores, setFornecedores] = useState([])
-  const [equipmentList, setEquipmentList] = useState([])
-  const [maintenanceToDelete, setMaintenanceToDelete] = useState(null)
-  const [deleting, setDeleting] = useState(false)
-
-  // Estados para formulário de criação
-  const [newMaintenance, setNewMaintenance] = useState({
-    tag: '',
-    tipo_manutencao: '',
-    data_agendada: '',
-    fornecedor_id: '',
-    valor_orcado: '',
-    observacoes: '',
-    duracao_estimada: 60,
-    local: 'Oficina',
-    responsavel: ''
-  })
+function MaintenanceList({ maintenanceData, onAddMaintenance, onViewDetail }) {
+  const { showSuccess, showError, showInfo } = useToast()
+  const [filteredData, setFilteredData] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [periodFilter, setPeriodFilter] = useState('all')
+  const [sortField, setSortField] = useState('start_date')
+  const [sortDirection, setSortDirection] = useState('desc')
+  const [viewMode, setViewMode] = useState('table') // 'table' or 'cards'
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    fetchMaintenanceList()
-    fetchSuppliers()
-    fetchEquipmentList()
-  }, [])
+    filterAndSortData()
+  }, [maintenanceData, searchTerm, statusFilter, typeFilter, periodFilter, sortField, sortDirection])
 
-  const fetchMaintenanceList = async () => {
-    try {
-      setLoading(true)
-      const response = await axios.get(`${API_BASE}/maintenance`)
-      setManutencoes(response.data.manutencoes || [])
-    } catch (err) {
-      console.error('Erro ao carregar manutenções:', err)
-    } finally {
-      setLoading(false)
+  const filterAndSortData = () => {
+    let filtered = [...maintenanceData]
+
+    // Aplicar filtros
+    if (searchTerm) {
+      filtered = filtered.filter(item =>
+        item.equipment_tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.maintenance_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(item => item.status === statusFilter)
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(item => item.maintenance_type === typeFilter)
+    }
+
+    if (periodFilter !== 'all') {
+      const now = new Date()
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+
+      switch (periodFilter) {
+        case 'last_30_days':
+          filtered = filtered.filter(item => new Date(item.start_date) >= thirtyDaysAgo)
+          break
+        case 'last_90_days':
+          filtered = filtered.filter(item => new Date(item.start_date) >= ninetyDaysAgo)
+          break
+        case 'this_year':
+          filtered = filtered.filter(item => new Date(item.start_date).getFullYear() === now.getFullYear())
+          break
+      }
+    }
+
+    // Aplicar ordenação
+    filtered.sort((a, b) => {
+      let aValue = a[sortField]
+      let bValue = b[sortField]
+
+      if (sortField === 'start_date' || sortField === 'end_date') {
+        aValue = new Date(aValue || 0)
+        bValue = new Date(bValue || 0)
+      }
+
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+
+    setFilteredData(filtered)
+  }
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
     }
   }
 
-  const fetchSuppliers = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/suppliers`)
-      setFornecedores(response.data.fornecedores || [])
-    } catch (err) {
-      console.error('Erro ao carregar fornecedores:', err)
-    }
+  const clearFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('all')
+    setTypeFilter('all')
+    setPeriodFilter('all')
   }
 
-  const fetchEquipmentList = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/equipment`)
-      setEquipmentList(response.data || [])
-    } catch (err) {
-      console.error('Erro ao carregar equipamentos:', err)
-    }
+  const handleViewDetail = (maintenance) => {
+    onViewDetail(maintenance)
   }
 
-  const createMaintenance = async () => {
-    try {
-      await axios.post(`${API_BASE}/maintenance`, newMaintenance)
-      setShowCreateModal(false)
-      setNewMaintenance({
-        tag: '',
-        tipo_manutencao: '',
-        data_agendada: '',
-        fornecedor_id: '',
-        valor_orcado: '',
-        observacoes: '',
-        duracao_estimada: 60,
-        local: 'Oficina',
-        responsavel: ''
-      })
-      fetchMaintenanceList()
-      toast.success('Manutenção criada com sucesso!')
-    } catch (err) {
-      toast.error('Erro ao criar manutenção')
-      console.error('Erro:', err)
-    }
+  const handleEdit = (maintenance) => {
+    showInfo('Funcionalidade de edição será implementada em breve!')
   }
 
-  const deleteMaintenance = async (id) => {
-    setDeleting(true)
+  const handleExportData = async () => {
     try {
-      await axios.delete(`${API_BASE}/maintenance/${id}`)
-      toast.success('Manutenção excluída com sucesso!')
-      setMaintenanceToDelete(null)
-      fetchMaintenanceList()
-    } catch (err) {
-      toast.error('Erro ao excluir manutenção')
-    } finally {
-      setDeleting(false)
+      const response = await fetch('http://localhost:8000/export', {
+        method: 'GET',
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `manutencoes_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        showSuccess('Exportação realizada com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao exportar:', error);
+      showError('Erro ao exportar dados');
+    }
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'concluída':
+        return <CheckCircle size={16} className="text-green-500" />
+      case 'em andamento':
+        return <Clock size={16} className="text-yellow-500" />
+      case 'pendente':
+        return <AlertTriangle size={16} className="text-red-500" />
+      default:
+        return <Clock size={16} className="text-gray-500" />
     }
   }
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'AGENDADA': return 'bg-blue-100 text-blue-800'
-      case 'EM_ANDAMENTO': return 'bg-yellow-100 text-yellow-800'
-      case 'CONCLUIDA': return 'bg-green-100 text-green-800'
-      case 'CANCELADA': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+    switch (status?.toLowerCase()) {
+      case 'concluída':
+        return 'status-completed'
+      case 'em andamento':
+        return 'status-in-progress'
+      case 'pendente':
+        return 'status-pending'
+      default:
+        return 'status-default'
     }
   }
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'AGENDADA': return <Calendar size={16} />
-      case 'EM_ANDAMENTO': return <Wrench size={16} />
-      case 'CONCLUIDA': return <CheckCircle size={16} />
-      case 'CANCELADA': return <AlertTriangle size={16} />
-      default: return <Clock size={16} />
+  const getStatusBadgeColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'concluída':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'em andamento':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'pendente':
+        return 'bg-red-100 text-red-800 border-red-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'N/A'
-    try {
-      return format(new Date(dateStr), 'dd/MM/yyyy', { locale: ptBR })
-    } catch {
-      return dateStr
-    }
+  const calculateStats = () => {
+    const total = filteredData.length
+    const pending = filteredData.filter(m => m.status === 'pendente').length
+    const inProgress = filteredData.filter(m => m.status === 'em andamento').length
+    const completed = filteredData.filter(m => m.status === 'concluída').length
+    const totalCost = filteredData.reduce((sum, m) => sum + (m.cost || 0), 0)
+
+    return { total, pending, inProgress, completed, totalCost }
   }
 
-  const formatCurrency = (value) => {
-    if (!value) return 'N/A'
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value)
-  }
-
-  if (loading) {
-    // Skeleton loading
-    return (
-      <div className="maintenance-container">
-        <div className="maintenance-header">
-          <div>
-            <div className="skeleton skeleton-title" style={{ width: 220, height: 32, marginBottom: 8 }} />
-            <div className="skeleton skeleton-text" style={{ width: 320, height: 18 }} />
-          </div>
-          <div className="skeleton" style={{ width: 160, height: 40, borderRadius: 8 }} />
-        </div>
-        <div className="skeleton" style={{ width: '100%', height: 48, borderRadius: 8, margin: '32px 0 8px' }} />
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ width: '100%', height: 56, borderRadius: 8, marginBottom: 12 }} />
-        ))}
-      </div>
-    )
-  }
+  const stats = calculateStats()
 
   return (
-    <div className="maintenance-container">
-      {/* Header */}
-      <div className="maintenance-header premium-header">
-        <div>
-          <h2 className="maintenance-title gradient-text">
-            <Wrench size={28} style={{marginRight:8, color:'var(--accent-color)'}} /> Gestão de Manutenções
-          </h2>
-          <p className="maintenance-subtitle">
-            Gerencie agendamentos, checklists e histórico de manutenções de forma visual e intuitiva
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="btn btn-primary shadow-lg"
-        >
-          <Plus size={20} /> Nova Manutenção
-        </button>
-      </div>
-
-      {/* Estatísticas */}
-      <div className="stats-grid premium-stats">
-        <div className="stat-card premium-stat-card">
-          <div className="stat-content">
-            <Calendar className="stat-icon stat-icon-blue" size={28} />
-            <div className="stat-info">
-              <p className="stat-label">Agendadas</p>
-              <p className="stat-value">
-                {manutencoes.filter(m => m.status === 'AGENDADA').length}
-              </p>
-            </div>
+    <div className="maintenance-page">
+      {/* Header da Página */}
+      <div className="maintenance-header">
+        <div className="maintenance-header-content">
+          <div className="maintenance-header-title">
+            <h1 className="maintenance-title">
+              <Wrench size={28} className="maintenance-title-icon" />
+              Gestão de Manutenções
+            </h1>
+            <p className="maintenance-subtitle">
+              Gerencie agendamentos, acompanhe progresso e mantenha o histórico completo
+            </p>
           </div>
-        </div>
-        <div className="stat-card premium-stat-card">
-          <div className="stat-content">
-            <Wrench className="stat-icon stat-icon-yellow" size={28} />
-            <div className="stat-info">
-              <p className="stat-label">Em Andamento</p>
-              <p className="stat-value">
-                {manutencoes.filter(m => m.status === 'EM_ANDAMENTO').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="stat-card premium-stat-card">
-          <div className="stat-content">
-            <CheckCircle className="stat-icon stat-icon-green" size={28} />
-            <div className="stat-info">
-              <p className="stat-label">Concluídas</p>
-              <p className="stat-value">
-                {manutencoes.filter(m => m.status === 'CONCLUIDA').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="stat-card premium-stat-card">
-          <div className="stat-content">
-            <DollarSign className="stat-icon stat-icon-purple" size={28} />
-            <div className="stat-info">
-              <p className="stat-label">Total Investido</p>
-              <p className="stat-value">
-                {formatCurrency(
-                  manutencoes
-                    .filter(m => m.valor_real)
-                    .reduce((sum, m) => sum + (m.valor_real || 0), 0)
-                )}
-              </p>
-            </div>
+          <div className="maintenance-header-actions">
+            <button
+              onClick={onAddMaintenance}
+              className="btn-primary-maintenance"
+            >
+              <Plus size={20} />
+              Nova Manutenção
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Lista de Manutenções */}
-      <div className="card premium-card">
-        <div className="table-container">
-          <table className="maintenance-table premium-table">
-            <thead>
-              <tr>
-                <th className="maintenance-col-equipment">Equipamento</th>
-                <th className="maintenance-col-type">Tipo</th>
-                <th className="maintenance-col-date">Data Agendada</th>
-                <th className="maintenance-col-status">Status</th>
-                <th className="maintenance-col-supplier">Fornecedor</th>
-                <th className="maintenance-col-value">Valor</th>
-                <th className="maintenance-col-actions">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {manutencoes.map((manutencao) => (
-                <tr key={manutencao.id} className="maintenance-row premium-row">
-                  <td className="maintenance-cell">
-                    <div className="maintenance-equipment premium-equipment">
-                      <User size={16} style={{marginRight:4, color:'var(--primary-color)'}} />
-                      <span>{manutencao.tag}</span>
-                    </div>
-                  </td>
-                  <td className="maintenance-cell">
-                    <div className="maintenance-type premium-type">
-                      {manutencao.tipo_manutencao}
-                    </div>
-                  </td>
-                  <td className="maintenance-cell">
-                    <div className="maintenance-date premium-date">
-                      {formatDate(manutencao.data_agendada)}
-                    </div>
-                  </td>
-                  <td className="maintenance-cell">
-                    <span className={`status-badge status-${manutencao.status.toLowerCase()} premium-status-badge`}>
-                      {getStatusIcon(manutencao.status)}
-                      <span className="status-text">{manutencao.status}</span>
-                    </span>
-                  </td>
-                  <td className="maintenance-cell">
-                    <div className="maintenance-supplier premium-supplier">
-                      {manutencao.fornecedor_nome || 'N/A'}
-                    </div>
-                    {manutencao.fornecedor_telefone && (
-                      <div className="maintenance-phone premium-phone">
-                        <Phone size={12} />
-                        {manutencao.fornecedor_telefone}
+      {/* Estatísticas Rápidas */}
+      <div className="maintenance-stats-grid">
+        <div className="stat-card-maintenance">
+          <div className="stat-icon-maintenance stat-icon-total">
+            <BarChart3 size={24} />
+          </div>
+          <div className="stat-content-maintenance">
+            <div className="stat-value-maintenance">{stats.total}</div>
+            <div className="stat-label-maintenance">Total</div>
+          </div>
+        </div>
+        <div className="stat-card-maintenance">
+          <div className="stat-icon-maintenance stat-icon-pending">
+            <AlertTriangle size={24} />
+          </div>
+          <div className="stat-content-maintenance">
+            <div className="stat-value-maintenance">{stats.pending}</div>
+            <div className="stat-label-maintenance">Pendentes</div>
+          </div>
+        </div>
+        <div className="stat-card-maintenance">
+          <div className="stat-icon-maintenance stat-icon-progress">
+            <Clock size={24} />
+          </div>
+          <div className="stat-content-maintenance">
+            <div className="stat-value-maintenance">{stats.inProgress}</div>
+            <div className="stat-label-maintenance">Em Andamento</div>
+          </div>
+        </div>
+        <div className="stat-card-maintenance">
+          <div className="stat-icon-maintenance stat-icon-completed">
+            <CheckCircle size={24} />
+          </div>
+          <div className="stat-content-maintenance">
+            <div className="stat-value-maintenance">{stats.completed}</div>
+            <div className="stat-label-maintenance">Concluídas</div>
+          </div>
+        </div>
+        <div className="stat-card-maintenance">
+          <div className="stat-icon-maintenance stat-icon-cost">
+            <DollarSign size={24} />
+          </div>
+          <div className="stat-content-maintenance">
+            <div className="stat-value-maintenance">
+              R$ {stats.totalCost.toLocaleString('pt-BR')}
+            </div>
+            <div className="stat-label-maintenance">Custo Total</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Barra de Ferramentas */}
+      <div className="maintenance-toolbar">
+        <div className="toolbar-left">
+          <div className="search-container-maintenance">
+            <Search size={20} className="search-icon-maintenance" />
+            <input
+              type="text"
+              placeholder="Buscar manutenções..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input-maintenance"
+            />
+          </div>
+        </div>
+        
+        <div className="toolbar-right">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`filter-toggle-btn ${showFilters ? 'active' : ''}`}
+          >
+            <FilterIcon size={18} />
+            Filtros
+          </button>
+          
+          <div className="view-mode-toggle">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
+              title="Visualização em Tabela"
+            >
+              <BarChart3 size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`view-mode-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              title="Visualização em Cards"
+            >
+              <CalendarDays size={18} />
+            </button>
+          </div>
+
+          <button className="export-btn-maintenance" title="Exportar Dados" onClick={handleExportData}>
+            <Download size={18} />
+          </button>
+          
+          <button className="refresh-btn-maintenance" title="Atualizar" onClick={handleRefresh}>
+            <RefreshCw size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Filtros Avançados */}
+      {showFilters && (
+        <div className="maintenance-filters-panel">
+          <div className="filters-grid">
+            <div className="filter-group-maintenance">
+              <label className="filter-label-maintenance">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select-maintenance"
+              >
+                <option value="all">Todos os Status</option>
+                <option value="pendente">Pendente</option>
+                <option value="em andamento">Em Andamento</option>
+                <option value="concluída">Concluída</option>
+              </select>
+            </div>
+
+            <div className="filter-group-maintenance">
+              <label className="filter-label-maintenance">Tipo</label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="filter-select-maintenance"
+              >
+                <option value="all">Todos os Tipos</option>
+                <option value="preventiva">Preventiva</option>
+                <option value="corretiva">Corretiva</option>
+                <option value="preditiva">Preditiva</option>
+              </select>
+            </div>
+
+            <div className="filter-group-maintenance">
+              <label className="filter-label-maintenance">Período</label>
+              <select
+                value={periodFilter}
+                onChange={(e) => setPeriodFilter(e.target.value)}
+                className="filter-select-maintenance"
+              >
+                <option value="all">Todos os Períodos</option>
+                <option value="last_30_days">Últimos 30 dias</option>
+                <option value="last_90_days">Últimos 90 dias</option>
+                <option value="this_year">Este ano</option>
+              </select>
+            </div>
+
+            <div className="filter-group-maintenance">
+              <button onClick={clearFilters} className="clear-filters-btn-maintenance">
+                <RotateCcw size={16} />
+                Limpar Filtros
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Conteúdo Principal */}
+      <div className="maintenance-content">
+        {viewMode === 'table' ? (
+          /* Visualização em Tabela */
+          <div className="maintenance-table-container">
+            <div className="table-responsive-maintenance">
+              <table className="maintenance-table-modern">
+                <thead>
+                  <tr>
+                    <th onClick={() => handleSort('equipment_tag')} className="sortable-header">
+                      <div className="header-content">
+                        <span>Equipamento</span>
+                        {sortField === 'equipment_tag' && (
+                          <span className="sort-indicator">
+                            {sortDirection === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </td>
-                  <td className="maintenance-cell">
-                    <div className="maintenance-value premium-value">
-                      {formatCurrency(manutencao.valor_real || manutencao.valor_orcado)}
+                    </th>
+                    <th onClick={() => handleSort('maintenance_type')} className="sortable-header">
+                      <div className="header-content">
+                        <span>Tipo</span>
+                        {sortField === 'maintenance_type' && (
+                          <span className="sort-indicator">
+                            {sortDirection === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('start_date')} className="sortable-header">
+                      <div className="header-content">
+                        <span>Data Início</span>
+                        {sortField === 'start_date' && (
+                          <span className="sort-indicator">
+                            {sortDirection === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('end_date')} className="sortable-header">
+                      <div className="header-content">
+                        <span>Data Fim</span>
+                        {sortField === 'end_date' && (
+                          <span className="sort-indicator">
+                            {sortDirection === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('status')} className="sortable-header">
+                      <div className="header-content">
+                        <span>Status</span>
+                        {sortField === 'status' && (
+                          <span className="sort-indicator">
+                            {sortDirection === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => handleSort('cost')} className="sortable-header">
+                      <div className="header-content">
+                        <span>Custo</span>
+                        {sortField === 'cost' && (
+                          <span className="sort-indicator">
+                            {sortDirection === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="actions-header">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.map((manutencao) => (
+                    <tr key={manutencao.id} className="maintenance-row-modern">
+                      <td className="equipment-cell-modern">
+                        <div className="equipment-info-modern">
+                          <span className="equipment-tag-modern">{manutencao.equipment_tag}</span>
+                        </div>
+                      </td>
+                      <td className="type-cell-modern">
+                        <span className="maintenance-type-modern">{manutencao.maintenance_type}</span>
+                      </td>
+                      <td className="date-cell-modern">
+                        {new Date(manutencao.start_date).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="date-cell-modern">
+                        {manutencao.end_date 
+                          ? new Date(manutencao.end_date).toLocaleDateString('pt-BR')
+                          : '-'
+                        }
+                      </td>
+                      <td className="status-cell-modern">
+                        <div className={`status-badge-modern ${getStatusBadgeColor(manutencao.status)}`}>
+                          {getStatusIcon(manutencao.status)}
+                          <span>{manutencao.status}</span>
+                        </div>
+                      </td>
+                      <td className="cost-cell-modern">
+                        {manutencao.cost ? `R$ ${manutencao.cost.toFixed(2)}` : '-'}
+                      </td>
+                      <td className="actions-cell-modern">
+                        <div className="action-buttons-modern">
+                          <button
+                            onClick={() => handleViewDetail(manutencao)}
+                            className="action-btn-modern view-btn-modern"
+                            title="Ver Detalhes"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(manutencao)}
+                            className="action-btn-modern edit-btn-modern"
+                            title="Editar"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button className="action-btn-modern more-btn-modern" title="Mais Opções">
+                            <MoreHorizontal size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          /* Visualização em Cards */
+          <div className="maintenance-cards-grid">
+            {filteredData.map((manutencao) => (
+              <div key={manutencao.id} className="maintenance-card-modern">
+                <div className="card-header-modern">
+                  <div className="card-equipment-info">
+                    <span className="equipment-tag-card">{manutencao.equipment_tag}</span>
+                    <span className="maintenance-type-card">{manutencao.maintenance_type}</span>
+                  </div>
+                  <div className={`status-badge-card ${getStatusBadgeColor(manutencao.status)}`}>
+                    {getStatusIcon(manutencao.status)}
+                    <span>{manutencao.status}</span>
+                  </div>
+                </div>
+                
+                <div className="card-content-modern">
+                  <div className="info-row-card">
+                    <Calendar size={16} className="info-icon-card" />
+                    <div className="info-content-card">
+                      <span className="info-label-card">Início:</span>
+                      <span className="info-value-card">
+                        {new Date(manutencao.start_date).toLocaleDateString('pt-BR')}
+                      </span>
                     </div>
-                  </td>
-                  <td className="maintenance-cell">
-                    <div className="maintenance-actions premium-actions">
-                      <button
-                        onClick={() => setSelectedMaintenance(manutencao)}
-                        className="btn btn-secondary btn-sm premium-btn"
-                        title="Ver detalhes"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        className="btn btn-success btn-sm premium-btn"
-                        title="Editar"
-                        disabled
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        className="btn btn-danger btn-sm premium-btn"
-                        title="Excluir"
-                        onClick={() => setMaintenanceToDelete(manutencao)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  </div>
+                  <div className="info-row-card">
+                    <Clock size={16} className="info-icon-card" />
+                    <div className="info-content-card">
+                      <span className="info-label-card">Fim:</span>
+                      <span className="info-value-card">
+                        {manutencao.end_date 
+                          ? new Date(manutencao.end_date).toLocaleDateString('pt-BR')
+                          : 'Não concluída'
+                        }
+                      </span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="info-row-card">
+                    <DollarSign size={16} className="info-icon-card" />
+                    <div className="info-content-card">
+                      <span className="info-label-card">Custo:</span>
+                      <span className="info-value-card">
+                        {manutencao.cost ? `R$ ${manutencao.cost.toFixed(2)}` : 'Não especificado'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-        {manutencoes.length === 0 && (
-          <div className="empty-state premium-empty">
-            <Wrench size={48} />
-            <h3>Nenhuma manutenção encontrada</h3>
-            <p>Comece criando uma nova manutenção.</p>
+                <div className="card-actions-modern">
+                  <button
+                    onClick={() => handleViewDetail(manutencao)}
+                    className="action-btn-card view-btn-card"
+                  >
+                    <Eye size={16} />
+                    Ver Detalhes
+                  </button>
+                  <button
+                    onClick={() => handleEdit(manutencao)}
+                    className="action-btn-card edit-btn-card"
+                  >
+                    <Edit size={16} />
+                    Editar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Estado Vazio */}
+        {filteredData.length === 0 && (
+          <div className="empty-state-maintenance">
+            <div className="empty-icon-maintenance">
+              <Wrench size={64} />
+            </div>
+            <h3 className="empty-title-maintenance">Nenhuma manutenção encontrada</h3>
+            <p className="empty-description-maintenance">
+              {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' || periodFilter !== 'all'
+                ? 'Tente ajustar os filtros de busca'
+                : 'Comece adicionando uma nova manutenção'
+              }
+            </p>
+            {!searchTerm && statusFilter === 'all' && typeFilter === 'all' && periodFilter === 'all' && (
+              <button onClick={onAddMaintenance} className="btn-primary-maintenance">
+                <Plus size={16} />
+                Nova Manutenção
+              </button>
+            )}
           </div>
         )}
       </div>
-
-      {/* Modal de Detalhes */}
-      {selectedMaintenance && (
-        <MaintenanceDetail
-          maintenanceId={selectedMaintenance.id}
-          onClose={() => setSelectedMaintenance(null)}
-        />
-      )}
-
-      {/* Modal de Criação */}
-      {showCreateModal && (
-        <div className="modal-overlay premium-modal">
-          <div className="modal-content modal-fade" style={{ maxWidth: 800, width: '100%' }}>
-            <div className="modal-header">
-              <h3 className="modal-title gradient-text">
-                <Plus size={20} style={{marginRight:6}} /> Nova Manutenção
-              </h3>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="modal-close"
-                title="Fechar"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-grid premium-form-grid">
-                <div className="form-group">
-                  <label className="form-label">Equipamento</label>
-                  <select
-                    value={newMaintenance.tag}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, tag: e.target.value})}
-                    className="form-select"
-                  >
-                    <option value="">Selecione um equipamento</option>
-                    {equipmentList.map((equip) => (
-                      <option key={equip.tag} value={equip.tag}>{equip.tag}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Tipo de Manutenção</label>
-                  <select
-                    value={newMaintenance.tipo_manutencao}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, tipo_manutencao: e.target.value})}
-                    className="form-select"
-                  >
-                    <option value="">Selecione o tipo</option>
-                    <option value="PREVENTIVA">Preventiva</option>
-                    <option value="CORRETIVA">Corretiva</option>
-                    <option value="PREDICTIVA">Preditiva</option>
-                    <option value="INSPECAO">Inspeção</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Data Agendada</label>
-                  <input
-                    type="date"
-                    value={newMaintenance.data_agendada}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, data_agendada: e.target.value})}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Fornecedor</label>
-                  <select
-                    value={newMaintenance.fornecedor_id}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, fornecedor_id: e.target.value})}
-                    className="form-select"
-                  >
-                    <option value="">Selecione um fornecedor</option>
-                    {fornecedores.map((fornecedor) => (
-                      <option key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Valor Orçado</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={newMaintenance.valor_orcado}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, valor_orcado: e.target.value})}
-                    className="form-input"
-                    placeholder="0,00"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Responsável</label>
-                  <input
-                    type="text"
-                    value={newMaintenance.responsavel}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, responsavel: e.target.value})}
-                    className="form-input"
-                    placeholder="Nome do responsável"
-                  />
-                </div>
-                <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                  <label className="form-label">Observações</label>
-                  <textarea
-                    value={newMaintenance.observacoes}
-                    onChange={(e) => setNewMaintenance({...newMaintenance, observacoes: e.target.value})}
-                    rows={3}
-                    className="form-input"
-                    placeholder="Detalhes da manutenção..."
-                  />
-                </div>
-              </div>
-              <div className="form-actions premium-form-actions">
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="btn btn-secondary"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={createMaintenance}
-                  className="btn btn-primary"
-                >
-                  Criar Manutenção
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {maintenanceToDelete && (
-        <div className="modal-overlay premium-modal">
-          <div className="modal-content modal-fade" style={{ maxWidth: 500, width: '100%' }}>
-            <div className="modal-header">
-              <h3 className="modal-title">Confirmar Exclusão</h3>
-              <button
-                onClick={() => setMaintenanceToDelete(null)}
-                className="modal-close"
-                title="Fechar"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <p className="modal-message">
-                Tem certeza que deseja excluir a manutenção <b>{maintenanceToDelete.tag}</b> agendada para <b>{formatDate(maintenanceToDelete.data_agendada)}</b>?
-              </p>
-              <div className="form-actions premium-form-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setMaintenanceToDelete(null)}
-                  disabled={deleting}
-                >
-                  Cancelar
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => deleteMaintenance(maintenanceToDelete.id)}
-                  disabled={deleting}
-                >
-                  {deleting ? 'Excluindo...' : 'Excluir'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Estilos premium rápidos (pode migrar para CSS depois) */}
-      <style>{`
-        .premium-header {
-          background: linear-gradient(90deg, #6366f1 0%, #a5b4fc 100%);
-          border-radius: 18px;
-          box-shadow: 0 6px 32px rgba(80,80,120,0.10);
-          margin-bottom: 2rem;
-          padding: 2rem 2.5rem 1.5rem 2.5rem;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 1.5rem;
-        }
-        .gradient-text {
-          background: linear-gradient(90deg, #fff 0%, #e0e7ff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          text-fill-color: transparent;
-        }
-        .premium-card {
-          border-radius: 18px;
-          box-shadow: 0 8px 32px rgba(80,80,120,0.13);
-          border: none;
-          overflow: hidden;
-          margin-bottom: 2rem;
-          background: linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%);
-        }
-        .premium-table {
-          border-radius: 14px;
-          overflow: hidden;
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0;
-          background: #fff;
-          font-size: 1rem;
-        }
-        .premium-table th {
-          background: #f1f5f9;
-          color: #6366f1;
-          font-weight: 700;
-          border-bottom: 2px solid #e0e7ff;
-          padding: 1em 0.7em;
-        }
-        .premium-table td {
-          padding: 0.9em 0.7em;
-          border-bottom: 1px solid #e0e7ff;
-        }
-        .premium-row:nth-child(even) {
-          background: #f8fafc;
-        }
-        .premium-row:hover {
-          background: #e0e7ff44;
-          transition: background 0.2s;
-        }
-        .premium-status-badge {
-          border-radius: 16px;
-          padding: 0.3em 1em 0.3em 0.7em;
-          font-weight: 700;
-          font-size: 0.95em;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5em;
-          background: linear-gradient(90deg, #e0e7ff 0%, #6366f1 100%);
-          color: #3730a3;
-          box-shadow: 0 2px 8px rgba(80,80,120,0.07);
-          animation: badgePulse 2.5s infinite;
-        }
-        @keyframes badgePulse {
-          0%, 100% { box-shadow: 0 2px 8px rgba(80,80,120,0.07); }
-          50% { box-shadow: 0 4px 16px #6366f1aa; }
-        }
-        .premium-btn {
-          box-shadow: 0 2px 8px #6366f122;
-          border-radius: 8px;
-          margin-right: 4px;
-          transition: transform 0.12s, box-shadow 0.18s;
-        }
-        .premium-btn:active {
-          transform: scale(0.96);
-          box-shadow: 0 1px 2px #6366f122;
-        }
-        .premium-form-grid {
-          gap: 1.5rem 2rem;
-        }
-        .premium-form-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 1.2rem;
-          margin-top: 1.5rem;
-        }
-        .premium-empty {
-          text-align: center;
-          color: #6366f1;
-          padding: 2.5rem 0 1.5rem 0;
-        }
-        @media (max-width: 900px) {
-          .premium-header { padding: 1.2rem 1rem; }
-          .premium-card { padding: 1rem 0.5rem; }
-          .premium-table th, .premium-table td { padding: 0.6em 0.3em; }
-        }
-      `}</style>
     </div>
   )
 }

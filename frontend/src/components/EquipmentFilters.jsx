@@ -53,7 +53,7 @@ const EquipmentFilters = ({ onFilterChange, equipmentList }) => {
   }, [searchTerm, statusFilter, typeFilter])
 
   return (
-    <div className={styles.filtersCard}>
+    <div className={`card ${styles.filtersCard}`}>
       <div className={styles.filtersHeader}>
         <div className={styles.filtersTitle}>
           <Filter size={20} />
@@ -61,7 +61,7 @@ const EquipmentFilters = ({ onFilterChange, equipmentList }) => {
         </div>
         <div className={styles.filtersActions}>
           {hasActiveFilters && (
-            <button 
+            <button
               onClick={clearFilters}
               className="btn btn-secondary btn-sm"
               title="Limpar todos os filtros"
@@ -70,7 +70,7 @@ const EquipmentFilters = ({ onFilterChange, equipmentList }) => {
               <span>Limpar</span>
             </button>
           )}
-          <button 
+          <button
             onClick={() => setShowFilters(!showFilters)}
             className={`btn ${showFilters ? 'btn-primary' : 'btn-secondary'} btn-sm`}
           >
@@ -90,7 +90,7 @@ const EquipmentFilters = ({ onFilterChange, equipmentList }) => {
               placeholder="Buscar equipamento por TAG..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
+              className={`form-input ${styles.searchInput}`}
             />
           </div>
         </div>
@@ -101,14 +101,14 @@ const EquipmentFilters = ({ onFilterChange, equipmentList }) => {
         <div className={styles.advancedFilters}>
           <div className={styles.filtersGrid}>
             {/* Filtro por Status */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>
+            <div className="form-group">
+              <label className="form-label">
                 Status do Equipamento
               </label>
-              <select 
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className={styles.filterSelect}
+                className="form-select"
               >
                 <option value="all">Todos os Status ({equipmentList.length})</option>
                 <option value="critical">Críticos ({getStatusCount('critical')})</option>
@@ -118,14 +118,14 @@ const EquipmentFilters = ({ onFilterChange, equipmentList }) => {
               </select>
             </div>
             {/* Filtro por Tipo */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>
+            <div className="form-group">
+              <label className="form-label">
                 Tipo de Equipamento
               </label>
-              <select 
+              <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className={styles.filterSelect}
+                className="form-select"
               >
                 <option value="all">Todos os Tipos ({equipmentList.length})</option>
                 <option value="HORAS">Máquinas ({getTypeCount('HORAS')})</option>

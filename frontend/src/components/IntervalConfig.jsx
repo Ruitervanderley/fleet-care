@@ -3,13 +3,60 @@ import axios from 'axios'
 import { Settings, Save, AlertCircle, Edit, Trash2, Plus, List } from 'lucide-react'
 
 const IntervalConfig = ({ equipmentList, onUpdate }) => {
-  const [activeTab, setActiveTab] = useState('new') // 'new' ou 'edit'
+  const [activeTab, setActiveTab] = useState('smart') // 'smart', 'edit', 'bulk'
   const [selectedEquipment, setSelectedEquipment] = useState('')
   const [interval, setInterval] = useState('')
+  const [intervalType, setIntervalType] = useState('HORAS') // 'HORAS' ou 'KM'
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [editingInterval, setEditingInterval] = useState(null)
+  const [bulkConfig, setBulkConfig] = useState({
+    vehicleType: '',
+    interval: '',
+    intervalType: 'HORAS'
+  })
 
+  // Função para detectar tipo de equipamento inteligentemente
+  const detectEquipmentType = (equipment) => {
+    const tag = equipment.tag?.toLowerCase() || ''
+    const tipo = equipment.tipo?.toLowerCase() || ''
+    
+    // Palavras-chave para KM
+    const kmKeywords = ['carro', 'camionete', 'pickup', 'van', 'hilux', 'ranger', 'l200', 'amarok', 'strada', 'saveiro', 'kombi']
+    // Palavras-chave para HORAS
+    const horasKeywords = ['escavadeira', 'trator', 'pa', 'carregadeira', 'retroescavadeira', 'compactador', 'gerador', 'motoniveladora', 'pá']
+    
+    const text = `${tag} ${tipo}`.toLowerCase()
+    
+    if (kmKeywords.some(keyword => text.includes(keyword))) {
+      return { type: 'KM', suggestedInterval: 10000 }
+    }
+    
+    if (horasKeywords.some(keyword => text.includes(keyword))) {
+      return { type: 'HORAS', suggestedInterval: 250 }
+    }
+    
+    // Se contém números grandes, provavelmente é KM
+    if (equipment.atual > 5000) {
+      return { type: 'KM', suggestedInterval: 10000 }
+    }
+    
+    // Default para HORAS
+    return { type: 'HORAS', suggestedInterval: 250 }
+  }
+
+  // Agrupar equipamentos por tipo detectado
+  const groupedEquipment = equipmentList.reduce((acc, equipment) => {
+    if (!equipment.intervalo || equipment.intervalo === 0) {
+      const detected = detectEquipmentType(equipment)
+      const group = detected.type
+      if (!acc[group]) acc[group] = []
+      acc[group].push({ ...equipment, detected })
+    }
+    return acc
+  }, {})
+
+  // Configurar um equipamento individual
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!selectedEquipment || !interval) {
@@ -19,7 +66,7 @@ const IntervalConfig = ({ equipmentList, onUpdate }) => {
     setLoading(true)
     setMessage('')
     try {
-      await axios.post(`/api/equipment/${selectedEquipment}/interval`, null, {
+      await axios.post(`http://localhost:8000/equipment/${selectedEquipment}/interval`, null, {
         params: { intervalo: parseFloat(interval) }
       })
       setMessage('✅ Intervalo configurado com sucesso!')
@@ -35,11 +82,41 @@ const IntervalConfig = ({ equipmentList, onUpdate }) => {
     }
   }
 
+  // Configurar intervalos em lote baseado no tipo
+  const handleBulkConfig = async (type, interval) => {
+    setLoading(true)
+    setMessage('')
+    
+    const equipments = groupedEquipment[type] || []
+    let successCount = 0
+    let errorCount = 0
+    
+    for (const equipment of equipments) {
+      try {
+        await axios.post(`http://localhost:8000/equipment/${equipment.tag}/interval`, null, {
+          params: { intervalo: parseFloat(interval) }
+        })
+        successCount++
+      } catch (err) {
+        errorCount++
+        console.error(`Erro ao configurar ${equipment.tag}:`, err)
+      }
+    }
+    
+    setMessage(`✅ ${successCount} equipamentos configurados com sucesso! ${errorCount > 0 ? `❌ ${errorCount} falharam.` : ''}`)
+    
+    if (onUpdate) {
+      setTimeout(onUpdate, 1000)
+    }
+    
+    setLoading(false)
+  }
+
   const handleEditInterval = async (equipment, newInterval) => {
     setLoading(true)
     setMessage('')
     try {
-      await axios.put(`/api/equipment/${equipment.tag}/interval`, null, {
+      await axios.put(`http://localhost:8000/equipment/${equipment.tag}/interval`, null, {
         params: { intervalo: parseFloat(newInterval) }
       })
       setMessage('✅ Intervalo atualizado com sucesso!')
@@ -61,7 +138,7 @@ const IntervalConfig = ({ equipmentList, onUpdate }) => {
     setLoading(true)
     setMessage('')
     try {
-      await axios.delete(`/api/equipment/${equipment.tag}/interval`)
+      await axios.delete(`http://localhost:8000/equipment/${equipment.tag}/interval`)
       setMessage('✅ Intervalo removido com sucesso!')
       if (onUpdate) {
         setTimeout(onUpdate, 1000)
@@ -105,23 +182,17 @@ const IntervalConfig = ({ equipmentList, onUpdate }) => {
   const equipmentWithoutIntervals = equipmentList.filter(eq => !eq.intervalo || eq.intervalo === 0)
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h2 className="card-title">
-          <Settings size={20} />
-          Gerenciar Intervalos de Manutenção
-        </h2>
-      </div>
+    <div className="interval-config-content">
 
       {/* Tabs */}
       <div className="tabs-container" style={{ marginBottom: 24 }}>
         <div className="tabs">
           <button
-            className={`tab ${activeTab === 'new' ? 'active' : ''}`}
-            onClick={() => setActiveTab('new')}
+            className={`tab ${activeTab === 'smart' ? 'active' : ''}`}
+            onClick={() => setActiveTab('smart')}
           >
-            <Plus size={16} />
-            Novo Intervalo
+            <Settings size={16} />
+            Configuração Inteligente
           </button>
           <button
             className={`tab ${activeTab === 'edit' ? 'active' : ''}`}
@@ -134,61 +205,80 @@ const IntervalConfig = ({ equipmentList, onUpdate }) => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'new' && (
-        <form onSubmit={handleSubmit} className="form-grid" style={{ maxWidth: 500, margin: '0 auto', gap: 24 }}>
-          <div className="form-group">
-            <label className="form-label">Equipamento:</label>
-            <select 
-              value={selectedEquipment}
-              onChange={handleEquipmentChange}
-              className="form-select"
-            >
-              <option value="">Selecione um equipamento</option>
-              {equipmentWithoutIntervals.map(eq => (
-                <option key={eq.tag} value={eq.tag}>
-                  {eq.tag} ({eq.tipo})
-                </option>
-              ))}
-            </select>
+      {activeTab === 'smart' && (
+        <div className="smart-config">
+          <div className="smart-header">
+            <h3>🤖 Configuração Inteligente de Intervalos</h3>
+            <p>O sistema detectou automaticamente os tipos de equipamentos e sugere intervalos apropriados:</p>
           </div>
-          <div className="form-group">
-            <label className="form-label">Intervalo de Manutenção:</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                type="number"
-                value={interval}
-                onChange={(e) => setInterval(e.target.value)}
-                placeholder="Ex: 250 horas ou 5000 km"
-                className="form-input"
-                min={1}
-                disabled={loading}
-                style={{ maxWidth: 160 }}
-              />
-              <span style={{ color: '#718096', fontSize: 14 }}>
-                {selectedEquipment.includes('(KM)') ? 'km' : 'horas'}
-              </span>
+
+          {Object.entries(groupedEquipment).map(([type, equipments]) => (
+            <div key={type} className="equipment-group">
+              <div className="group-header">
+                <h4>
+                  {type === 'KM' ? '🚗 Veículos Leves' : '🚜 Equipamentos Pesados'} 
+                  <span className="group-count">({equipments.length} equipamentos)</span>
+                </h4>
+                <p className="group-description">
+                  {type === 'KM' 
+                    ? 'Veículos leves como carros, camionetes e utilitários. Manutenção baseada em quilometragem.' 
+                    : 'Equipamentos pesados como escavadeiras, tratores e máquinas. Manutenção baseada em horas de uso.'
+                  }
+                </p>
+              </div>
+
+              <div className="bulk-config">
+                <div className="bulk-inputs">
+                  <input
+                    type="number"
+                    placeholder={type === 'KM' ? '10000' : '250'}
+                    className="form-input"
+                    id={`bulk-${type}`}
+                    defaultValue={type === 'KM' ? '10000' : '250'}
+                  />
+                  <span className="unit-label">{type === 'KM' ? 'km' : 'horas'}</span>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      const input = document.getElementById(`bulk-${type}`)
+                      handleBulkConfig(type, input.value)
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Configurando...' : 'Aplicar a Todos'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="equipment-preview">
+                <h5>Equipamentos que serão configurados:</h5>
+                <div className="equipment-grid">
+                  {equipments.slice(0, 6).map(equipment => (
+                    <div key={equipment.tag} className="equipment-item">
+                      <span className="equipment-tag">{equipment.tag}</span>
+                      <span className="equipment-type">{equipment.tipo}</span>
+                      <span className="suggested-interval">
+                        Sugestão: {equipment.detected.suggestedInterval} {type.toLowerCase()}
+                      </span>
+                    </div>
+                  ))}
+                  {equipments.length > 6 && (
+                    <div className="equipment-item more">
+                      +{equipments.length - 6} mais...
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="form-actions">
-            <button 
-              type="submit" 
-              disabled={loading || !selectedEquipment || !interval}
-              className="btn btn-primary"
-            >
-              {loading ? (
-                <>
-                  <span className="animate-spin" style={{ marginRight: 8 }}>553</span>
-                  Configurando...
-                </>
-              ) : (
-                <>
-                  <Save size={16} style={{ marginRight: 8 }} />
-                  Configurar Intervalo
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+          ))}
+
+          {Object.keys(groupedEquipment).length === 0 && (
+            <div className="empty-state">
+              <h4>✅ Todos os equipamentos já têm intervalos configurados!</h4>
+              <p>Use a aba "Editar Intervalos" para modificar configurações existentes.</p>
+            </div>
+          )}
+        </div>
       )}
 
       {activeTab === 'edit' && (

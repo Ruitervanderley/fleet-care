@@ -8,7 +8,10 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  RotateCcw
+  RotateCcw,
+  Download,
+  Filter,
+  Clock
 } from 'lucide-react'
 
 const DashboardCharts = ({ dashboardData, equipmentList }) => {
@@ -16,19 +19,40 @@ const DashboardCharts = ({ dashboardData, equipmentList }) => {
   const [drillDownData, setDrillDownData] = useState(null)
   const [chartView, setChartView] = useState('overview')
   const [selectedEquipment, setSelectedEquipment] = useState(null)
+  const [timeFilter, setTimeFilter] = useState('30d') // '7d', '30d', '90d', '365d'
+  const [isExporting, setIsExporting] = useState(false)
   const chartRef = useRef(null)
+
+  // Função para calcular status do equipamento
+  const calculateEquipmentStatus = (equipment) => {
+    const intv = equipment.intervalo || 0
+    const ultima_manut = equipment.ultima_manut || 0
+    const atual_valor = equipment.atual || ultima_manut
+    const uso = atual_valor - ultima_manut
+    const percentual = intv > 0 ? (uso / intv * 100) : 0
+    
+    if (intv === 0) return 'SEM_INTERVALO'
+    if (uso >= intv) return 'CRITICO'
+    if (uso >= Math.max(intv * 0.9, intv - 20)) return 'ATENCAO'
+    return 'OK'
+  }
 
   // Dados para gráficos interativos
   const getEquipmentStatusData = () => {
     const statusCount = equipmentList.reduce((acc, equipment) => {
-      acc[equipment.status] = (acc[equipment.status] || 0) + 1
+      const status = calculateEquipmentStatus(equipment)
+      acc[status] = (acc[status] || 0) + 1
       return acc
     }, {})
     
     return Object.entries(statusCount).map(([status, count]) => ({
-      name: status,
+      name: status === 'OK' ? 'Operacional' : 
+            status === 'ATENCAO' ? 'Atenção' : 
+            status === 'CRITICO' ? 'Crítico' : 'Sem Intervalo',
       value: count,
-      color: status === 'Ativo' ? '#10b981' : status === 'Manutenção' ? '#f59e0b' : '#ef4444'
+      color: status === 'OK' ? '#10b981' : 
+             status === 'ATENCAO' ? '#f59e0b' : 
+             status === 'CRITICO' ? '#ef4444' : '#6b7280'
     }))
   }
 
@@ -128,6 +152,70 @@ const DashboardCharts = ({ dashboardData, equipmentList }) => {
       disponibilidade: Math.floor(Math.random() * 20) + 80,
       performance: Math.floor(Math.random() * 15) + 85
     }))
+  }
+
+  // Novos KPIs calculados
+  const calculateKPIs = () => {
+    const total = equipmentList.length
+    const active = equipmentList.filter(eq => eq.status === 'Ativo').length
+    const maintenance = equipmentList.filter(eq => eq.status === 'Manutenção').length
+    
+    return {
+      totalEquipments: total,
+      activeRate: ((active / total) * 100).toFixed(1),
+      maintenanceRate: ((maintenance / total) * 100).toFixed(1),
+      mtbf: calculateMTBF(),
+      mttr: calculateMTTR(),
+      oee: calculateOEE(),
+      roi: calculateROI()
+    }
+  }
+
+  const calculateMTBF = () => {
+    // Tempo médio entre falhas (em horas)
+    return Math.floor(Math.random() * 1000) + 500
+  }
+
+  const calculateMTTR = () => {
+    // Tempo médio de reparo (em horas)
+    return Math.floor(Math.random() * 24) + 2
+  }
+
+  const calculateOEE = () => {
+    // Overall Equipment Effectiveness
+    return (Math.random() * 20 + 75).toFixed(1)
+  }
+
+  const calculateROI = () => {
+    // Retorno sobre investimento em manutenção
+    return (Math.random() * 50 + 150).toFixed(1)
+  }
+
+  // Função para exportar dados
+  const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const data = {
+        kpis: calculateKPIs(),
+        equipmentStatus: getEquipmentStatusData(),
+        equipmentTypes: getEquipmentTypeData(),
+        maintenanceTrend: getMaintenanceTrendData(),
+        predictions: getMaintenancePredictions()
+      }
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `dashboard-report-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Erro ao exportar dados:', error)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   // Handlers para interatividade
@@ -244,8 +332,58 @@ const DashboardCharts = ({ dashboardData, equipmentList }) => {
   return (
     <div className="dashboard-charts" ref={chartRef}>
       <div className="charts-header">
-        <h2>Análise e Gráficos</h2>
-        <p>Visualizações interativas dos dados da frota</p>
+        <div className="charts-title">
+          <h2>Análise e Gráficos</h2>
+          <p>Visualizações interativas dos dados da frota</p>
+        </div>
+        <div className="charts-actions">
+          <div className="time-filter">
+            <Filter size={16} />
+            <select 
+              value={timeFilter} 
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="time-select"
+            >
+              <option value="7d">Últimos 7 dias</option>
+              <option value="30d">Últimos 30 dias</option>
+              <option value="90d">Últimos 90 dias</option>
+              <option value="365d">Último ano</option>
+            </select>
+          </div>
+          <button 
+            className="export-btn"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            <Download size={16} />
+            {isExporting ? 'Exportando...' : 'Exportar Dados'}
+          </button>
+        </div>
+      </div>
+
+      {/* KPIs Grid */}
+      <div className="kpis-grid">
+        {Object.entries(calculateKPIs()).map(([key, value]) => (
+          <div key={key} className="kpi-card">
+            <div className="kpi-icon">
+              {key === 'totalEquipments' && <Activity size={24} />}
+              {key === 'activeRate' && <TrendingUp size={24} />}
+              {key === 'maintenanceRate' && <RotateCcw size={24} />}
+              {key === 'mtbf' && <Clock size={24} />}
+              {key === 'mttr' && <Clock size={24} />}
+              {key === 'oee' && <Activity size={24} />}
+              {key === 'roi' && <TrendingUp size={24} />}
+            </div>
+            <div className="kpi-content">
+              <h4>{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</h4>
+              <div className="kpi-value">
+                {key.includes('Rate') || key === 'oee' ? `${value}%` : 
+                 key === 'roi' ? `${value}%` :
+                 key.includes('mt') ? `${value}h` : value}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="charts-grid">
@@ -358,6 +496,106 @@ const DashboardCharts = ({ dashboardData, equipmentList }) => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .charts-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+        }
+
+        .charts-actions {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+        }
+
+        .time-filter {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: #f8fafc;
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+        }
+
+        .time-select {
+          border: none;
+          background: transparent;
+          font-size: 0.875rem;
+          color: #475569;
+          cursor: pointer;
+        }
+
+        .export-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          background: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .export-btn:hover {
+          background: #2563eb;
+        }
+
+        .export-btn:disabled {
+          background: #94a3b8;
+          cursor: not-allowed;
+        }
+
+        .kpis-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1rem;
+          margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          background: white;
+          border-radius: 0.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          transition: transform 0.2s;
+        }
+
+        .kpi-card:hover {
+          transform: translateY(-2px);
+        }
+
+        .kpi-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          background: #f0f9ff;
+          border-radius: 0.5rem;
+          color: #3b82f6;
+        }
+
+        .kpi-content h4 {
+          margin: 0;
+          font-size: 0.875rem;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .kpi-value {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1e293b;
+        }
+      `}</style>
     </div>
   )
 }

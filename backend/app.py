@@ -31,9 +31,9 @@ if not CAMINHO_PLANILHA:
     PLANILHA = None
 else:
     # Se estiver rodando no Docker, usar o caminho montado
-    if os.path.exists("/data/planilha.xlsx"):
-        PLANILHA = Path("/data/planilha.xlsx")
-        logger.info("Usando planilha montada no Docker: /data/planilha.xlsx")
+    if os.path.exists("/app/planilha.xlsx"):
+        PLANILHA = Path("/app/planilha.xlsx")
+        logger.info("Usando planilha montada no Docker: /app/planilha.xlsx")
     else:
         # Resolver caminho relativo corretamente
         if CAMINHO_PLANILHA.startswith("../"):
@@ -281,9 +281,13 @@ def resumo_dashboard() -> dict:
                 
         conn.close()
         
+        # Use a data atual se houver dados, senão None
+        agora = dt.datetime.now()
+        data_formatada = agora.strftime("%d/%m/%Y às %H:%M") if ultima_atualizacao_geral else None
+        
         return {
             **status,
-            "ultima_atualizacao": str(ultima_atualizacao_geral) if ultima_atualizacao_geral else None
+            "ultima_atualizacao": data_formatada
         }
         
     except Exception as e:

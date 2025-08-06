@@ -1,0 +1,163 @@
+{
+  "system": {
+    "name": "Fleet Care System",
+    "version": "2.0.0",
+    "lastUpdate": "2024-12-19",
+    "status": "stable"
+  },
+  "components": {
+    "frontend": {
+      "framework": "React 18",
+      "bundler": "Vite",
+      "css": "Modular CSS",
+      "icons": "Lucide React",
+      "toast": "Custom Toast System"
+    },
+    "backend": {
+      "framework": "FastAPI",
+      "database": "SQLite (dev) / PostgreSQL (prod)",
+      "scheduler": "APScheduler",
+      "import": "Pandas + Excel"
+    },
+    "infrastructure": {
+      "containerization": "Docker + Docker Compose",
+      "webserver": "Nginx",
+      "ssl": "Self-signed (dev)"
+    }
+  },
+  "features": {
+    "dashboard": {
+      "status": "complete",
+      "components": [
+        "OverviewPage",
+        "QuickActionsWidget",
+        "StatusOverviewWidget",
+        "PriorityAlertsWidget",
+        "ExecutiveSummaryWidget"
+      ]
+    },
+    "equipment": {
+      "status": "complete",
+      "components": [
+        "EquipmentTable",
+        "EquipmentFilters",
+        "EquipmentHistoryModal"
+      ]
+    },
+    "maintenance": {
+      "status": "complete",
+      "components": [
+        "MaintenanceList",
+        "MaintenanceDetail",
+        "MaintenanceAlert"
+      ]
+    },
+    "analysis": {
+      "status": "complete",
+      "components": [
+        "PredictiveAnalysis",
+        "TrendAnalysis",
+        "AdvancedReports",
+        "DashboardCharts"
+      ]
+    },
+    "suppliers": {
+      "status": "complete",
+      "components": [
+        "SupplierManagement"
+      ]
+    },
+    "settings": {
+      "status": "complete",
+      "components": [
+        "SystemConfig",
+        "WidgetSettingsModal",
+        "IntervalConfig"
+      ]
+    }
+  },
+  "ui": {
+    "theme": {
+      "light": "enabled",
+      "dark": "enabled",
+      "auto": "enabled"
+    },
+    "cards": {
+      "background": "#fff",
+      "border": "rgba(0, 0, 0, 0.06)",
+      "shadow": "0 1px 2px rgba(0, 0, 0, 0.04)"
+    },
+    "modals": {
+      "overlay": "rgba(0, 0, 0, 0.35)",
+      "backdrop": "blur(2px)",
+      "responsive": true
+    },
+    "toast": {
+      "position": "top-right",
+      "duration": 5000,
+      "types": ["success", "error", "warning", "info"]
+    }
+  },
+  "performance": {
+    "optimizations": [
+      "CSS modularizado",
+      "Componentes lazy-loaded",
+      "Imagens otimizadas",
+      "Bundle splitting"
+    ],
+    "targets": {
+      "firstContentfulPaint": "< 1.5s",
+      "largestContentfulPaint": "< 2.5s",
+      "cumulativeLayoutShift": "< 0.1"
+    }
+  },
+  "updates": {
+    "nextVersion": "2.2.0",
+    "implementedFeatures": [
+      "Loading states com skeleton",
+      "Animações avançadas",
+      "Widgets arrastáveis",
+      "Micro-interações suaves",
+      "Skeleton loaders para cards"
+    ],
+    "plannedFeatures": [
+      "Exportação de relatórios PDF",
+      "Notificações push",
+      "Layouts salvos por usuário",
+      "KPIs personalizáveis"
+    ],
+    "maintenance": {
+      "frequency": "weekly",
+      "tasks": [
+        "Verificar console errors",
+        "Testar responsividade",
+        "Validar acessibilidade",
+        "Atualizar dependências"
+      ]
+    }
+  },
+  "documentation": {
+    "files": [
+      "README.md",
+      "ROADMAP.md",
+      "MAINTENANCE_GUIDE.md",
+      "CONFIGURACOES.md",
+      "INSTALACAO.md"
+    ],
+    "status": "complete"
+  },
+  "quality": {
+    "standards": [
+      "Cards sempre opacos e legíveis",
+      "Sem scroll horizontal",
+      "Responsividade mobile-first",
+      "Acessibilidade WCAG 2.1",
+      "Performance otimizada"
+    ],
+    "testing": {
+      "manual": "completed",
+      "automated": "planned",
+      "browser": ["Chrome", "Firefox", "Safari", "Edge"]
+    }
+  }
+} 

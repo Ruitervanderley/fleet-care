@@ -53,9 +53,4 @@ echo Frontend: http://localhost:5173 (desenvolvimento)
 echo.
 echo Aguarde o frontend inicializar...
 echo.
-npm run dev
-
-node -v
-npm -v
-
-npm install chart.js react-chartjs-2 --save 
+npm run dev 
