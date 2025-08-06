@@ -2,32 +2,34 @@ version: '3.8'
 
 services:
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    image: ghcr.io/ruitervanderley/fleetcare-frontend:latest
+    # Para desenvolvimento, use build local:
+    # build:
+    #   context: ./frontend
+    #   dockerfile: Dockerfile.dev
+    # volumes:
+    #   - ./frontend:/app
+    #   - /app/node_modules
     ports:
-      - "5173:5173"
+      - "3000:80"
     environment:
-      - NODE_ENV=development
-      - VITE_API_URL=http://localhost:8000
+      - NODE_ENV=production
     depends_on:
       - backend
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/ruitervanderley/fleetcare-backend:latest
+    # Para desenvolvimento, use build local:
+    # build:
+    #   context: ./backend
+    #   dockerfile: Dockerfile
     volumes:
-      - ./backend:/app
+      - ./data:/app/data
       - ./PRODUTIVIDADE EQUIPAMENTOS.xlsx:/app/planilha.xlsx
     ports:
       - "8000:8000"
     environment:
-      - FLASK_ENV=development
-      - FLASK_APP=app.py
+      - PYTHONUNBUFFERED=1
     depends_on:
       - db
       - redis

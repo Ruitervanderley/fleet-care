@@ -257,8 +257,8 @@ EOF
 start_system() {
     print_status "Iniciando sistema..."
     
-    # Construir e iniciar containers
-    docker-compose build --no-cache
+    # Iniciar containers usando imagens do GHCR
+    docker-compose pull
     docker-compose up -d
     
     # Aguardar inicialização
@@ -300,6 +300,10 @@ show_final_info() {
     print_success "Deploy concluído com sucesso!"
     echo
     echo "📋 Informações importantes:"
+    echo
+    echo "🐳 Imagens Docker:"
+    echo "   - Backend: ghcr.io/ruitervanderley/fleetcare-backend:latest"
+    echo "   - Frontend: ghcr.io/ruitervanderley/fleetcare-frontend:latest"
     echo
     echo "🌐 Acesso ao sistema:"
     echo "   - Frontend: http://$(hostname -I | awk '{print $1}'):3000"
